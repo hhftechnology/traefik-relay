@@ -1,0 +1,39 @@
+# TraefikRelay Configuration Example
+
+# Global settings
+runEvery: 60  # Check for changes every 60 seconds
+forwardMiddlewares: true  # Forward middleware references from local to main instance
+forwardServices: true  # Forward service references from local to main instance
+
+# Servers configuration
+servers:
+  # Example server with basic configuration
+  - name: "compute-1"
+    apiAddress: http://192.168.0.10:8080
+    destinationAddress: http://192.168.0.10
+    entryPoints:
+      web: web
+      web-secure: web
+
+  # Example server with basic auth and custom host
+  - name: "compute-2"
+    apiAddress: http://username:password@192.168.0.20:8080
+    apiHost: traefik.internal.domain
+    destinationAddress: http://192.168.0.20
+    entryPoints:
+      web: http
+      web-secure: http
+    
+  # Example server with TCP entrypoints
+  - name: "compute-3"
+    apiAddress: http://192.168.0.30:8080
+    destinationAddress: http://192.168.0.30
+    forwardMiddlewares: false  # Override global setting for this server
+    entryPoints:
+      web-tcp: local-tcp
+
+  # Example server with minimal configuration
+  # (uses default entryPoint mapping: http -> http)
+  - name: "compute-4"
+    apiAddress: http://192.168.0.40:8080
+    destinationAddress: http://192.168.0.40
