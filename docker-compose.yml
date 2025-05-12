@@ -30,11 +30,19 @@ services:
     container_name: traefik-relay
     depends_on:
       - redis
+    ports:
+      - "8080:8080"  # Expose the UI port
     volumes:
       - ./config.yml:/config.yml
     environment:
       REDIS_URL: "redis:6379"
       RUN_EVERY: 20
+      ENABLE_API: "true"
+      API_PORT: 8080
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.traefik-relay.rule: "Host(`relay.domain.tld`)"
+      traefik.http.services.traefik-relay.loadbalancer.server.port: "8080"
 
   redis:
     image: redis:alpine

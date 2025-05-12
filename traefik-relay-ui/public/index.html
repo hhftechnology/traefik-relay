@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="TraefikRelay - Manage your distributed Traefik instances" />
+    <title>TraefikRelay Dashboard</title>
+    <!-- Preload fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      /* Base styles to avoid FOUC (Flash Of Unstyled Content) */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        background-color: #f8f9fa;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      /* Loading spinner for initial load */
+      .initial-loader {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        height: 100vh;
+        width: 100vw;
+      }
+      .initial-loader__spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top-color: #1890ff;
+        animation: spin 1s ease infinite;
+      }
+      .initial-loader__text {
+        margin-top: 1rem;
+        font-size: 1.25rem;
+        color: #1890ff;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <!-- Initial loading state before React loads -->
+      <div class="initial-loader">
+        <div class="initial-loader__spinner"></div>
+        <div class="initial-loader__text">Loading TraefikRelay...</div>
+      </div>
+    </div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>

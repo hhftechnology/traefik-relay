@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/hhftechnology/traefik-relay/internal/api"
 	"github.com/hhftechnology/traefik-relay/internal/config"
 	"github.com/hhftechnology/traefik-relay/internal/redis"
 	"github.com/hhftechnology/traefik-relay/internal/worker"
@@ -20,6 +21,8 @@ func main() {
 	configPath := flag.String("config", getEnv("CONFIG_PATH", "/config.yml"), "Path to configuration file")
 	redisURL := flag.String("redis", getEnv("REDIS_URL", "redis:6379"), "Redis URL")
 	runEvery := flag.Int("run-every", getIntEnv("RUN_EVERY", 60), "Run every N seconds")
+	apiPort := flag.Int("api-port", getIntEnv("API_PORT", 8080), "API server port")
+	enableAPI := flag.Bool("enable-api", getBoolEnv("ENABLE_API", true), "Enable API server")
 	flag.Parse()
 
 	// Load configuration
@@ -91,6 +94,17 @@ func main() {
 		}
 	}()
 
+	// Start API server if enabled
+	if *enableAPI {
+		apiServer := api.NewServer(cfg, redisClient)
+		go func() {
+			if err := apiServer.Start(*apiPort); err != nil {
+				log.Fatalf("API server error: %v", err)
+			}
+		}()
+		log.Printf("API server started on port %d", *apiPort)
+	}
+
 	// Wait for termination signal
 	<-ctx.Done()
 	log.Println("Shutting down...")
@@ -109,6 +123,13 @@ func getIntEnv(key string, fallback int) int {
 		if _, err := fmt.Sscanf(value, "%d", &result); err == nil {
 			return result
 		}
+	}
+	return fallback
+}
+
+func getBoolEnv(key string, fallback bool) bool {
+	if value, exists := os.LookupEnv(key); exists {
+		return value == "1" || value == "true" || value == "yes" || value == "y"
 	}
 	return fallback
 }
