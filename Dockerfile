@@ -4,8 +4,9 @@ FROM node:20-alpine AS ui-builder
 WORKDIR /app
 
 # Copy UI files
-COPY traefik-relay-ui/package.json traefik-relay-ui/package-lock.json* ./
-RUN npm ci
+COPY traefik-relay-ui/package.json ./
+# Use regular npm install instead of npm ci since package-lock.json might not exist
+RUN npm install
 
 # Copy the rest of the UI source code
 COPY traefik-relay-ui/ ./
