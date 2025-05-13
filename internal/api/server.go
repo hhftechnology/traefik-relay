@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -139,9 +141,24 @@ func (s *Server) registerRoutes() {
 		})
 	})
 
-	// Serve static files for UI
-	fs := http.FileServer(http.Dir("./ui/dist"))
-	r.Handle("/*", http.StripPrefix("/", fs))
+	// Serve static files & SPA
+	// This assumes your Go binary runs from the /app directory in Docker,
+	// and your UI is in /app/ui/dist
+	staticDir := "./ui/dist" 
+	
+	r.Get("/*", func(w http.ResponseWriter, req *http.Request) {
+		requestedAsset := chi.URLParam(req, "*")
+		fsPath := filepath.Join(staticDir, requestedAsset)
+
+		// Check if the exact file exists and is not a directory
+		if stat, err := os.Stat(fsPath); err == nil && !stat.IsDir() {
+			http.ServeFile(w, req, fsPath)
+			return
+		}
+
+		// If the file doesn't exist (or if it's a directory, like for '/'), serve index.html
+		http.ServeFile(w, req, filepath.Join(staticDir, "index.html"))
+	})
 }
 
 // statusUpdater periodically updates the status of all servers
