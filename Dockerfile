@@ -6,7 +6,7 @@ WORKDIR /app
 # Copy package manifests first for better caching
 COPY traefik-relay-ui/package.json traefik-relay-ui/package-lock.json* ./
 
-# Install dependencies
+# Install dependencies + the missing lucide-react package
 RUN npm install
 
 # Create the target directories for source and public files
@@ -66,7 +66,7 @@ ENV CONFIG_PATH=/config.yml \
     API_PORT=8080
 
 # Create necessary directories
-RUN mkdir -p /app/ui
+RUN mkdir -p /app/ui/dist
 
 # Copy the binary from the Go build stage
 COPY --from=go-builder /traefik-relay /usr/local/bin/traefik-relay

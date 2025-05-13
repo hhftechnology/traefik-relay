@@ -12,7 +12,9 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4",
     "tailwindcss": "^3.2.4",
-    "autoprefixer": "^10.4.14"
+    "autoprefixer": "^10.4.14",
+    "lucide-react": "^0.266.0"
+
   },
   "scripts": {
     "start": "react-scripts start",
