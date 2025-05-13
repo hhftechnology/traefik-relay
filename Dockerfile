@@ -3,11 +3,11 @@ FROM node:20-alpine AS ui-builder
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json first for better caching
-COPY traefik-relay-ui/package*.json ./
+# Copy package.json first for better caching
+COPY traefik-relay-ui/package.json ./
 
-# Use npm ci for more reliable builds (ensures exact versions from package-lock)
-RUN npm ci
+# Use regular npm install as the original Dockerfile did
+RUN npm install
 
 # Copy the UI source code
 COPY traefik-relay-ui/ ./
