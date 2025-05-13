@@ -1,45 +1,57 @@
 # Build UI stage
 FROM node:18-alpine AS ui-builder
-WORKDIR /app
 
-# Copy package manifests first for better caching
-COPY traefik-relay-ui/package.json traefik-relay-ui/package-lock.json* ./
+# Set working directory
+WORKDIR /ui-build
 
-# Install dependencies
+# First copy just package files for better caching
+COPY traefik-relay-ui/package*.json ./
+
+# Install dependencies - including Vite explicitly
 RUN npm install
+RUN npm install -g vite
 
-# Copy ALL UI files at once to maintain correct relative paths
+# Now copy the entire UI directory
 COPY traefik-relay-ui/ ./
 
-# Debug: show important file locations
-RUN echo "--- Root directory contents ---"
-RUN ls -la ./
-RUN echo "--- Public directory contents ---"
-RUN ls -la ./public || echo "No public directory"
-RUN echo "--- Src directory contents ---"
-RUN ls -la ./src || echo "No src directory"
+# Debug: Show directory structure
+RUN echo "=== Root directory contents ==="
+RUN ls -la
+RUN echo "=== Node modules ==="
+RUN ls -la node_modules | head -n 10
+RUN echo "=== Package.json content ==="
+RUN cat package.json
 
-# Important: Make sure index.html exists (for Vite)
-RUN if [ ! -f "index.html" ]; then \
-    echo "index.html not found in root, checking public directory"; \
-    if [ -f "public/index.html" ]; then \
-      echo "Found in public, copying to root"; \
-      cp public/index.html ./; \
-    fi; \
+# Ensure index.html exists in the right place
+RUN echo "=== Checking for index.html ==="
+RUN find . -name "index.html" -type f
+
+# Create a minimal index.html if it doesn't exist
+RUN if ! find . -name "index.html" -type f | grep -q .; then \
+    echo "Creating minimal index.html"; \
+    echo '<!DOCTYPE html><html><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>TraefikRelay</title></head><body><div id="root"></div><script type="module" src="/src/index.js"></script></body></html>' > index.html; \
 fi
 
-# Verify the crucial index.html exists
-RUN ls -la index.html || echo "WARNING: index.html still missing"
+# Create a minimal but functional vite.config.js
+RUN echo "import { defineConfig } from 'vite';" > vite.config.js
+RUN echo "import react from '@vitejs/plugin-react';" >> vite.config.js
+RUN echo "export default defineConfig({" >> vite.config.js
+RUN echo "  plugins: [react()]," >> vite.config.js
+RUN echo "  build: { outDir: 'dist' }," >> vite.config.js
+RUN echo "});" >> vite.config.js
 
-# Create specific vite.config.js that will work in Docker environment
-RUN echo 'import { defineConfig } from "vite"; import react from "@vitejs/plugin-react"; export default defineConfig({ plugins: [react()], build: { outDir: "dist" } });' > vite.config.js
+# Show the contents of the vite.config.js file
+RUN echo "=== Vite config content ==="
+RUN cat vite.config.js
 
-# Build the UI
-RUN npm run build
+# Attempt to build with explicit commands
+RUN echo "=== Building UI with Vite ==="
+RUN mkdir -p dist
+RUN NODE_ENV=production vite build --outDir dist
 
-# Debug: verify build output
-RUN echo "--- Contents of build output ---"
-RUN ls -la dist/
+# Show build output
+RUN echo "=== Build output ==="
+RUN ls -la dist
 
 # Build Go stage
 FROM golang:1.21-alpine AS go-builder
@@ -69,13 +81,13 @@ ENV CONFIG_PATH=/config.yml \
     API_PORT=8080
 
 # Create necessary directories
-RUN mkdir -p /app/ui
+RUN mkdir -p /app/ui/dist
 
 # Copy the binary from the Go build stage
 COPY --from=go-builder /traefik-relay /usr/local/bin/traefik-relay
 
 # Copy the UI from the UI build stage
-COPY --from=ui-builder /app/dist /app/ui/dist
+COPY --from=ui-builder /ui-build/dist/ /app/ui/dist/
 
 # Create a non-root user and group
 RUN addgroup -S traefikrelay && adduser -S traefikrelay -G traefikrelay && \
