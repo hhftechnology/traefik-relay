@@ -8,21 +8,31 @@ COPY traefik-relay-ui/package.json traefik-relay-ui/package-lock.json* ./
 # Install dependencies
 RUN npm install
 
-# Create the target directories
-RUN mkdir -p src public
+# Copy ALL UI files at once to maintain correct relative paths
+COPY traefik-relay-ui/ ./
 
-# Copy UI public files
-COPY traefik-relay-ui/public/ ./public/
+# Debug: show important file locations
+RUN echo "--- Root directory contents ---"
+RUN ls -la ./
+RUN echo "--- Public directory contents ---"
+RUN ls -la ./public || echo "No public directory"
+RUN echo "--- Src directory contents ---"
+RUN ls -la ./src || echo "No src directory"
 
-# Copy UI source files (with proper structure)
-COPY traefik-relay-ui/src/ ./src/
-COPY traefik-relay-ui/*.js ./
+# Important: Make sure index.html exists (for Vite)
+RUN if [ ! -f "index.html" ]; then \
+    echo "index.html not found in root, checking public directory"; \
+    if [ -f "public/index.html" ]; then \
+      echo "Found in public, copying to root"; \
+      cp public/index.html ./; \
+    fi; \
+fi
 
-# Debug: verify structure
-RUN echo "--- Contents of /app/public ---"
-RUN ls -la public
-RUN echo "--- Contents of /app/src ---"
-RUN ls -la src
+# Verify the crucial index.html exists
+RUN ls -la index.html || echo "WARNING: index.html still missing"
+
+# Create specific vite.config.js that will work in Docker environment
+RUN echo 'import { defineConfig } from "vite"; import react from "@vitejs/plugin-react"; export default defineConfig({ plugins: [react()], build: { outDir: "dist" } });' > vite.config.js
 
 # Build the UI
 RUN npm run build
@@ -42,7 +52,7 @@ RUN go mod download
 # Copy the source code
 COPY . .
 
-# Build the application (keeping your CGO_ENABLED=0 setting)
+# Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -o /traefik-relay ./cmd/traefik-relay
 
 # Final stage
@@ -64,7 +74,7 @@ RUN mkdir -p /app/ui
 # Copy the binary from the Go build stage
 COPY --from=go-builder /traefik-relay /usr/local/bin/traefik-relay
 
-# Copy the UI from the UI build stage (matching your Go server's expected path)
+# Copy the UI from the UI build stage
 COPY --from=ui-builder /app/dist /app/ui/dist
 
 # Create a non-root user and group
