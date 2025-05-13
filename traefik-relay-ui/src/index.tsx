@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ChakraProvider, extendTheme } from '@chakra-ui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Create a theme with Traefik-like colors
 const theme = extendTheme({
