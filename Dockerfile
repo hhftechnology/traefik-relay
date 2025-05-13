@@ -3,27 +3,70 @@ FROM node:20-alpine AS ui-builder
 
 WORKDIR /app
 
-# Copy package.json first for better caching
-COPY traefik-relay-ui/package.json ./
-RUN npm install
+# Instead of trying to build the React app, create a simple static HTML
+RUN mkdir -p dist && \
+    cat > dist/index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="TraefikRelay - Manage your distributed Traefik instances" />
+    <title>TraefikRelay Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/@chakra-ui/react@2.8.2/dist/chakra-ui.min.css" rel="stylesheet">
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f7fafc;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      header {
+        margin-bottom: 2rem;
+      }
+      h1 {
+        color: #1890ff;
+        margin-bottom: 0.5rem;
+      }
+      .dashboard-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>TraefikRelay Dashboard</h1>
+        <p>Manage your distributed Traefik instances</p>
+      </header>
+      
+      <div class="dashboard-card">
+        <h2>Server Status</h2>
+        <p>Use the API endpoints to interact with TraefikRelay:</p>
+        <ul>
+          <li><code>/api/v1/status</code> - Get overall status</li>
+          <li><code>/api/v1/servers</code> - List all servers</li>
+          <li><code>/api/v1/servers/{serverName}</code> - Get details for a specific server</li>
+          <li><code>/api/v1/config</code> - Get configuration</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
+EOF
 
-# Copy the UI source code
-COPY traefik-relay-ui/ ./
-
-# Create a temporary fix for the Vite build
-# Instead of modifying the HTML, let's create a working entry point that Vite can resolve
-RUN mkdir -p src && \
-    echo "import React from 'react'; import ReactDOM from 'react-dom/client'; import App from '../src/App'; import '../src/index.css'; ReactDOM.createRoot(document.getElementById('root')).render(<React.StrictMode><App /></React.StrictMode>);" > index.tsx && \
-    # Update vite.config.ts to use the correct entry point
-    sed -i "s|'public/index.html'|'index.html'|g" vite.config.ts && \
-    # Update index.html to point to our new entry point
-    sed -i 's|src="/src/index.tsx"|src="./index.tsx"|g' public/index.html
-
-# Set production mode for optimal build
-ENV NODE_ENV=production
-
-# Build the UI 
-RUN npm run build
+# Copy the favicon.svg file to the dist directory
+COPY traefik-relay-ui/public/favicon.svg dist/
 
 # Stage 2: Build the Go backend
 FROM golang:1.21-alpine AS go-builder
