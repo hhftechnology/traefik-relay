@@ -887,21 +887,25 @@ const Configuration = () => {
   const [showAddServer, setShowAddServer] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
   
-  const fetchConfig = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const config = await apiService.fetchConfig();
-      setConfig(config);
-    } catch (error) {
-      console.error("Error fetching configuration:", error);
-      setError(`Failed to load configuration: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+// In the Configuration component
+useEffect(() => {
+    const fetchConfig = async () => {
+      setLoading(true);
+      try {
+        console.log("Fetching config...");
+        const response = await fetch(`${apiService.baseUrl}/api/v1/config`);
+        console.log("Response status:", response.status);
+        const data = await response.json();
+        console.log("Config received:", data);
+        setConfig(data || {});
+      } catch (error) {
+        console.error("Error fetching configuration:", error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
   
-  useEffect(() => {
     fetchConfig();
   }, []);
   

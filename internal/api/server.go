@@ -452,7 +452,8 @@ func (s *Server) handleRefreshServer(w http.ResponseWriter, r *http.Request) {
 
 // handleGetConfig handles the GET /api/v1/config endpoint
 func (s *Server) handleGetConfig(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, s.config, http.StatusOK)
+    log.Printf("Returning config: %+v", s.config)
+    writeJSON(w, s.config, http.StatusOK)
 }
 
 // handleUpdateConfig handles the PUT /api/v1/config endpoint
