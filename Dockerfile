@@ -3,16 +3,29 @@ FROM node:20-alpine AS ui-builder
 
 WORKDIR /app
 
-# Copy UI files
-COPY traefik-relay-ui/package.json ./
-# Use regular npm install instead of npm ci since package-lock.json might not exist
-RUN npm install
+# Copy package.json and package-lock.json first for better caching
+COPY traefik-relay-ui/package*.json ./
 
-# Copy the rest of the UI source code
+# Use npm ci for more reliable builds (ensures exact versions from package-lock)
+RUN npm ci
+
+# Copy the UI source code
 COPY traefik-relay-ui/ ./
+
+# Fix the source file references in the HTML to ensure Vite can properly process them
+# This changes /src/index.tsx to ./src/index.tsx for proper resolution
+RUN sed -i 's|src="/src/index.tsx"|src="./src/index.tsx"|g' public/index.html
+
+# Set production mode for optimal build
+ENV NODE_ENV=production
 
 # Build the UI
 RUN npm run build
+
+# Verify the build succeeded by checking for asset files and correct HTML references
+RUN test -d dist/assets && \
+    grep -q "assets/" dist/index.html || \
+    (echo "UI BUILD FAILED - ASSETS NOT GENERATED CORRECTLY" && exit 1)
 
 # Stage 2: Build the Go backend
 FROM golang:1.21-alpine AS go-builder
