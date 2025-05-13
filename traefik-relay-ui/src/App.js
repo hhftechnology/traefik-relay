@@ -499,14 +499,17 @@ const RedisManagement = ({ onFlushRedis }) => {
 const Configuration = () => {
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   
   const fetchConfig = async () => {
     setLoading(true);
+    setError(null);
     try {
       const config = await apiService.fetchConfig();
       setConfig(config);
     } catch (error) {
       console.error("Error fetching configuration:", error);
+      setError("Failed to load configuration: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -517,7 +520,14 @@ const Configuration = () => {
   }, []);
   
   if (loading) {
-    return <p>Loading configuration...</p>;
+    return <div className="p-4">Loading configuration...</div>;
+  }
+  if (error) {
+    return <div className="p-4 text-red-600">{error}</div>;
+  }
+
+  if (!config) {
+    return <div className="p-4">No configuration data available.</div>;
   }
   
   if (!config) {
