@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+// No need to import 'fileURLToPath' or use 'url' module, __dirname is available in Vite config
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -10,7 +10,18 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // Configure the dev server to proxy API requests to our Go backend
+  // Add this to specify where your index.html is located
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    emptyOutDir: true,
+    sourcemap: true,
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'public/index.html')
+      }
+    }
+  },
   server: {
     proxy: {
       '/api': {
@@ -19,13 +30,5 @@ export default defineConfig({
         secure: false,
       }
     }
-  },
-  // Build configuration
-  build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
-    emptyOutDir: true,
-    // Generate source maps for better debugging
-    sourcemap: true,
   }
-})
+});
