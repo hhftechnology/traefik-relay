@@ -122,9 +122,13 @@ services:
   traefik-relay:
     image: ghcr.io/hhftechnology/traefik-relay:latest
     volumes:
-      - ./config.yml:/config.yml
+      - /root/config.yml:/etc/traefik-relay/config.yml
     environment:
       REDIS_URL: "redis:6379"
+      RUN_EVERY: 20
+      ENABLE_API: "true"
+      API_PORT: 8080
+      CONFIG_PATH: /etc/traefik-relay/config.yml
 
   redis:
     image: redis:alpine
