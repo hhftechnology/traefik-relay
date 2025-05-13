@@ -1,3 +1,42 @@
+# Build UI stage
+FROM node:18-alpine AS ui-builder
+
+WORKDIR /app
+
+# Copy package manifests first for better caching
+COPY traefik-relay-ui/package.json traefik-relay-ui/package-lock.json* ./
+
+# Install dependencies
+RUN npm install
+
+# Create the target directories for source and public files
+RUN mkdir -p src public
+
+# Copy contents of traefik-relay-ui/public into container's /app/public
+COPY traefik-relay-ui/public/ ./public/
+
+# Copy source files from traefik-relay-ui/src
+COPY traefik-relay-ui/src/App.js ./src/
+COPY traefik-relay-ui/src/index.js ./src/
+COPY traefik-relay-ui/src/index.css ./src/
+
+# Copy other configuration files needed for the build
+COPY traefik-relay-ui/postcss.config.js ./
+COPY traefik-relay-ui/tailwind.config.js ./
+
+# Verify structure before building
+RUN echo "--- Contents of /app/public ---"
+RUN ls -la public
+RUN echo "--- Contents of /app/src ---"
+RUN ls -la src
+
+# Build the UI with Create React App
+RUN npm run build
+
+# Verify build output
+RUN echo "--- Contents of build ---"
+RUN ls -la build/
+
 # Build Go stage
 FROM golang:1.21-alpine AS go-builder
 
@@ -27,13 +66,14 @@ ENV CONFIG_PATH=/config.yml \
     API_PORT=8080
 
 # Create necessary directories
-RUN mkdir -p /app/ui/dist
+RUN mkdir -p /app/ui
 
 # Copy the binary from the Go build stage
 COPY --from=go-builder /traefik-relay /usr/local/bin/traefik-relay
 
-# Copy pre-built UI files directly from your local build
-COPY traefik-relay-ui/dist/ /app/ui/dist/
+# Copy the UI from the UI build stage
+# Note: Using /build since it's Create React App, not /dist which would be for Vite
+COPY --from=ui-builder /app/build /app/ui/dist
 
 # Create a non-root user and group
 RUN addgroup -S traefikrelay && adduser -S traefikrelay -G traefikrelay && \
