@@ -6,17 +6,15 @@ WORKDIR /app
 # Copy package.json and package-lock.json first for better caching
 COPY traefik-relay-ui/package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (using npm install instead of npm ci for flexibility)
+RUN npm install
 
-# Copy the rest of the UI source code
-COPY traefik-relay-ui/ ./
+# Copy the UI source code (excluding node_modules)
+COPY traefik-relay-ui/src ./src
+COPY traefik-relay-ui/public ./public
+COPY traefik-relay-ui/*.js ./
 
-# Create a simpler vite config that doesn't have path resolution issues
-RUN echo 'import { defineConfig } from "vite"; import react from "@vitejs/plugin-react"; export default defineConfig({ plugins: [react()], build: { outDir: "dist", rollupOptions: { input: "public/index.html" } } });' > vite.config.js
-
-
-# Build the UI
+# Build the UI - using the project's own build configuration
 RUN npm run build
 
 # Stage 2: Build the Go backend
