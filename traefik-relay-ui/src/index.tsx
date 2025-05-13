@@ -52,13 +52,15 @@ const queryClient = new QueryClient({
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <ChakraProvider theme={theme}>
-        <QueryClientProvider client={queryClient}>
-          <App />
-        </QueryClientProvider>
-      </ChakraProvider>
-    </BrowserRouter>
-  </React.StrictMode>
-);
+    <React.StrictMode>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <ChakraProvider theme={theme}>
+            <QueryClientProvider client={queryClient}>
+              <App />
+            </QueryClientProvider>
+          </ChakraProvider>
+        </BrowserRouter>
+      </ErrorBoundary>
+    </React.StrictMode>
+  );

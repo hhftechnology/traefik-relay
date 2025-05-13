@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      /* Base styles to avoid FOUC (Flash Of Unstyled Content) */
+      /* Base styles to avoid FOUC */
       body {
         margin: 0;
         padding: 0;
@@ -59,6 +59,7 @@
         <div class="initial-loader__text">Loading TraefikRelay...</div>
       </div>
     </div>
-    <script type="module" src="/src/index.tsx"></script>
+    <!-- Change from specific path to module type script with relative URL -->
+    <script type="module" src="./src/index.tsx"></script>
   </body>
 </html>

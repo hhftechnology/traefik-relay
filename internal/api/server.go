@@ -145,20 +145,20 @@ func (s *Server) registerRoutes() {
 	// This assumes your Go binary runs from the /app directory in Docker,
 	// and your UI is in /app/ui/dist
 	staticDir := "/app/ui/dist" 
-	
-	r.Get("/*", func(w http.ResponseWriter, req *http.Request) {
-		requestedAsset := chi.URLParam(req, "*")
-		fsPath := filepath.Join(staticDir, requestedAsset)
+	fileServer := http.FileServer(http.Dir(staticDir))
+    r.Handle("/assets/*", http.StripPrefix("/assets/", fileServer))
 
-		// Check if the exact file exists and is not a directory
-		if stat, err := os.Stat(fsPath); err == nil && !stat.IsDir() {
-			http.ServeFile(w, req, fsPath)
-			return
-		}
-
-		// If the file doesn't exist (or if it's a directory, like for '/'), serve index.html
-		http.ServeFile(w, req, filepath.Join(staticDir, "index.html"))
-	})
+    // Serve the index.html file for all other routes
+    r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+        // Direct requests for specific static files
+        if r.URL.Path == "/favicon.svg" {
+            http.ServeFile(w, r, filepath.Join(staticDir, "favicon.svg"))
+            return
+        }
+        
+        // For everything else, serve the index.html to support SPA routing
+        http.ServeFile(w, r, filepath.Join(staticDir, "index.html"))
+    })
 }
 
 // statusUpdater periodically updates the status of all servers
