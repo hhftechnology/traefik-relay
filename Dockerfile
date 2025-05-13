@@ -13,7 +13,8 @@ RUN npm ci
 COPY traefik-relay-ui/ ./
 
 # Create a simpler vite config that doesn't have path resolution issues
-RUN echo 'import { defineConfig } from "vite"; import react from "@vitejs/plugin-react"; export default defineConfig({ plugins: [react()], build: { outDir: "dist" } });' > vite.config.js
+RUN echo 'import { defineConfig } from "vite"; import react from "@vitejs/plugin-react"; export default defineConfig({ plugins: [react()], build: { outDir: "dist", rollupOptions: { input: "public/index.html" } } });' > vite.config.js
+
 
 # Build the UI
 RUN npm run build
