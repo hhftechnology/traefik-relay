@@ -144,7 +144,7 @@ func (s *Server) registerRoutes() {
 	// Serve static files & SPA
 	// This assumes your Go binary runs from the /app directory in Docker,
 	// and your UI is in /app/ui/dist
-	staticDir := "./ui/dist" 
+	staticDir := "/app/ui/dist" 
 	
 	r.Get("/*", func(w http.ResponseWriter, req *http.Request) {
 		requestedAsset := chi.URLParam(req, "*")
