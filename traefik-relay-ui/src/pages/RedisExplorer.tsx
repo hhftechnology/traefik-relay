@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Box,
   Heading,
@@ -21,7 +21,6 @@ import {
   useDisclosure,
   useToast,
   Badge,
-  Tooltip,
   Icon,
   Flex,
 } from '@chakra-ui/react';
@@ -36,6 +35,7 @@ const RedisExplorer = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFlushing, setIsFlushing] = useState(false);
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
   // Fetch Redis keys
   const { data: redisKeys, isLoading, error, refetch } = useQuery({
@@ -216,11 +216,7 @@ const RedisExplorer = () => {
       <Box mb={6}>
         <HStack mb={4}>
           <Heading size="md">Redis Keys</Heading>
-          <Tooltip label="These keys are used by Traefik's Redis provider to configure routing">
-            <Box>
-              <Icon as={FiInfo} color="gray.500" />
-            </Box>
-          </Tooltip>
+          <Icon as={FiInfo} color="gray.500" />
         </HStack>
         {redisKeys && redisKeys.length > 0 ? (
           <Box maxH="600px" overflowY="auto" borderWidth="1px" borderRadius="md" p={3}>
@@ -240,7 +236,7 @@ const RedisExplorer = () => {
       </Box>
 
       {/* Confirmation Dialog for Redis Flush */}
-      <AlertDialog isOpen={isOpen} onClose={onClose} leastDestructiveRef={undefined}>
+      <AlertDialog isOpen={isOpen} onClose={onClose} leastDestructiveRef={cancelRef}>
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold" color="red.500">
@@ -255,7 +251,7 @@ const RedisExplorer = () => {
             </AlertDialogBody>
 
             <AlertDialogFooter>
-              <Button ref={undefined} onClick={onClose}>
+              <Button ref={cancelRef} onClick={onClose}>
                 Cancel
               </Button>
               <Button 

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -35,7 +35,7 @@ import { FiArrowLeft, FiRefreshCw } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../api/apiClient';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { formatDistanceToNow, formatDateTime } from '../utils/dateUtils';
+import { formatDistanceToNow } from '../utils/dateUtils';
 
 const ServerDetail = () => {
   const { serverName } = useParams<{ serverName: string }>();
@@ -49,15 +49,6 @@ const ServerDetail = () => {
     queryFn: () => serverName ? apiClient.getServerDetail(serverName) : Promise.reject('No server name provided'),
     enabled: !!serverName,
   });
-
-  // Refresh data every 60 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refetch();
-    }, 60000);
-    
-    return () => clearInterval(interval);
-  }, [refetch]);
 
   const handleRefresh = useCallback(async () => {
     if (!serverName) return;

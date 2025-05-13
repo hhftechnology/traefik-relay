@@ -3,11 +3,9 @@ import { Outlet } from 'react-router-dom';
 import {
   Box,
   Flex,
-  HStack,
   IconButton,
   Link,
   useDisclosure,
-  Text,
   Stack,
   useColorModeValue,
   Icon,
@@ -16,19 +14,18 @@ import {
   DrawerOverlay,
   Heading,
 } from '@chakra-ui/react';
-import { useNavigate, Link as RouterLink, useLocation } from 'react-router-dom';
+import { useLink as RouterLink, useLocation } from 'react-router-dom';
 import {
   FiHome,
-  FiServer,
   FiSettings,
   FiDatabase,
   FiMenu,
   FiX,
-  FiNetwork,
 } from 'react-icons/fi';
+import { IconType } from 'react-icons';
 
 interface NavItemProps {
-  icon: ReactNode;
+  icon: IconType;
   to: string;
   children: ReactNode;
   active?: boolean;
@@ -82,7 +79,7 @@ const Sidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         Dashboard
       </NavItem>
       <NavItem 
-        icon={FiNetwork} 
+        icon={FiDatabase} 
         to="/network" 
         active={location.pathname === '/network'}
       >
@@ -150,7 +147,6 @@ const Sidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
 const DashboardLayout = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const navigate = useNavigate();
 
   return (
     <Box minH="100vh" bg={useColorModeValue('gray.50', 'gray.800')}>

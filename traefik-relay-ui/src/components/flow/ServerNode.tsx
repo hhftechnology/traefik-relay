@@ -1,8 +1,18 @@
 import { useCallback, memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import { Box, Text, Badge, useColorModeValue } from '@chakra-ui/react';
+import { ServerStatus } from '../../types';
 
-const ServerNode = ({ data }) => {
+interface ServerNodeProps {
+  data: {
+    label?: string;
+    isMain?: boolean;
+    status: string;
+    server?: ServerStatus;
+  };
+}
+
+const ServerNode = ({ data }: ServerNodeProps) => {
   const getBg = useCallback(() => {
     if (data.isMain) return useColorModeValue('blue.50', 'blue.900');
     return data.status === 'online' 

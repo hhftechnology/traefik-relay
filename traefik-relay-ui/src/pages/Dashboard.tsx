@@ -2,14 +2,13 @@ import { useEffect } from 'react';
 import { Box, SimpleGrid, Heading, Text, Card, CardHeader, CardBody, Badge, Flex, Button, useToast } from '@chakra-ui/react';
 import { FiRefreshCw, FiArrowRight } from 'react-icons/fi';
 import { Link as RouterLink } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../api/apiClient';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { formatDistanceToNow } from '../utils/dateUtils';
 
 const Dashboard = () => {
   const toast = useToast();
-  const queryClient = useQueryClient();
 
   // Fetch status
   const { data: statusInfo, isLoading, error, refetch } = useQuery({

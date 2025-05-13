@@ -1,8 +1,17 @@
 import { useCallback, memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import { Box, Text, Badge, useColorModeValue } from '@chakra-ui/react';
+import { HttpRouter, TcpRouter } from '../../types';
 
-const RouterNode = ({ data }) => {
+interface RouterNodeProps {
+  data: {
+    router: HttpRouter | TcpRouter;
+    type: 'http' | 'tcp';
+    server: string;
+  };
+}
+
+const RouterNode = ({ data }: RouterNodeProps) => {
   const getBg = useCallback(() => {
     return data.type === 'http'
       ? useColorModeValue('cyan.50', 'cyan.900')

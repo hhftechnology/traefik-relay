@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Heading,
@@ -21,34 +21,34 @@ import {
   Alert,
   AlertIcon,
   Badge,
-  Code,
   Divider,
   Switch,
-  Spinner,
 } from '@chakra-ui/react';
 import { FiPlus, FiSave, FiTrash2, FiUpload, FiDownload, FiRefreshCw } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../api/apiClient';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Server } from '../types';
+import { Server, Config } from '../types';
 
 const Configuration = () => {
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [editedConfig, setEditedConfig] = useState<any>(null);
+  const [editedConfig, setEditedConfig] = useState<Config | null>(null);
 
   // Fetch configuration
   const { data: config, isLoading, error, refetch } = useQuery({
     queryKey: ['config'],
     queryFn: apiClient.getConfig,
-    onSuccess: (data) => {
-      if (!editedConfig) {
-        setEditedConfig(data);
-      }
-    },
   });
+
+  // Set edited config when data loads
+  useEffect(() => {
+    if (config && !editedConfig) {
+      setEditedConfig(config);
+    }
+  }, [config, editedConfig]);
 
   const handleAddServer = () => {
     if (!editedConfig) return;

@@ -1,8 +1,15 @@
 import { useCallback, memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import { Box, Text, Badge, useColorModeValue } from '@chakra-ui/react';
+import { Middleware } from '../../types';
 
-const MiddlewareNode = ({ data }) => {
+interface MiddlewareNodeProps {
+  data: {
+    middleware: Middleware;
+  };
+}
+
+const MiddlewareNode = ({ data }: MiddlewareNodeProps) => {
   const getBg = useCallback(() => {
     return useColorModeValue('purple.50', 'purple.900');
   }, []);

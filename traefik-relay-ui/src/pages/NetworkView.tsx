@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -8,6 +8,7 @@ import ReactFlow, {
   useEdgesState,
   MarkerType,
   Panel,
+  BackgroundVariant,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import {
@@ -22,7 +23,6 @@ import {
   Alert,
   AlertIcon,
   Badge,
-  Tooltip,
 } from '@chakra-ui/react';
 import { FiRefreshCw } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
@@ -86,7 +86,7 @@ const NetworkView = () => {
   });
 
   // Build graph data when all queries are complete
-  const graphData = useMemo(() => {
+  const graphData = useCallback(() => {
     if (!statusQuery.data || !configQuery.data || !serverDetailsQuery.data) {
       return { nodes: [], edges: [] };
     }
@@ -115,6 +115,8 @@ const NetworkView = () => {
     
     // Add server nodes
     serverDetailsQuery.data.forEach((serverDetail, index) => {
+      if (!serverDetail) return;
+      
       const angle = angleStep * index;
       const x = 400 + radius * Math.cos(angle);
       const y = 400 + radius * Math.sin(angle);
@@ -153,9 +155,9 @@ const NetworkView = () => {
       const childRadius = 150;
       
       // Filter nodes according to toggles
-      const httpRouters = showHttpRouters ? serverDetail.httpRouterDetails : [];
-      const tcpRouters = showTcpRouters ? serverDetail.tcpRouterDetails : [];
-      const middlewares = showMiddlewares ? serverDetail.middlewareDetails : [];
+      const httpRouters = showHttpRouters ? serverDetail.httpRouterDetails || [] : [];
+      const tcpRouters = showTcpRouters ? serverDetail.tcpRouterDetails || [] : [];
+      const middlewares = showMiddlewares ? serverDetail.middlewareDetails || [] : [];
       
       // Add HTTP router nodes
       httpRouters.forEach((router, rIndex) => {
@@ -262,49 +264,53 @@ const NetworkView = () => {
     
     // Add edges between main Traefik and router nodes for direct connections
     serverDetailsQuery.data.forEach(serverDetail => {
-      if (!serverDetail.online) return;
+      if (!serverDetail || !serverDetail.online) return;
       
       // Look for HTTP routers that are mapped to the main Traefik
-      serverDetail.httpRouterDetails.forEach(router => {
-        const routerId = `router-http-${serverDetail.configuration.name}-${router.name}`;
-        
-        // Check if any of the entry points are mapped to the main instance
-        const mappedEntryPoints = router.entryPoints.filter(ep => 
-          Object.values(serverDetail.configuration.entryPoints).includes(ep)
-        );
-        
-        if (mappedEntryPoints.length > 0) {
-          edges.push({
-            id: `edge-main-to-${routerId}`,
-            source: mainNodeId,
-            target: routerId,
-            animated: true,
-            labelBgStyle: { fill: '#FFFFFF', opacity: 0.7 },
-            style: { stroke: '#38A169' },
-          });
-        }
-      });
+      if (serverDetail.httpRouterDetails) {
+        serverDetail.httpRouterDetails.forEach(router => {
+          const routerId = `router-http-${serverDetail.configuration.name}-${router.name}`;
+          
+          // Check if any of the entry points are mapped to the main instance
+          const mappedEntryPoints = router.entryPoints.filter(ep => 
+            Object.values(serverDetail.configuration.entryPoints).includes(ep)
+          );
+          
+          if (mappedEntryPoints.length > 0) {
+            edges.push({
+              id: `edge-main-to-${routerId}`,
+              source: mainNodeId,
+              target: routerId,
+              animated: true,
+              labelBgStyle: { fill: '#FFFFFF', opacity: 0.7 },
+              style: { stroke: '#38A169' },
+            });
+          }
+        });
+      }
       
       // Look for TCP routers that are mapped to the main Traefik
-      serverDetail.tcpRouterDetails.forEach(router => {
-        const routerId = `router-tcp-${serverDetail.configuration.name}-${router.name}`;
-        
-        // Check if any of the entry points are mapped to the main instance
-        const mappedEntryPoints = router.entryPoints.filter(ep => 
-          Object.values(serverDetail.configuration.entryPoints).includes(ep)
-        );
-        
-        if (mappedEntryPoints.length > 0) {
-          edges.push({
-            id: `edge-main-to-${routerId}`,
-            source: mainNodeId,
-            target: routerId,
-            animated: true,
-            labelBgStyle: { fill: '#FFFFFF', opacity: 0.7 },
-            style: { stroke: '#DD6B20' },
-          });
-        }
-      });
+      if (serverDetail.tcpRouterDetails) {
+        serverDetail.tcpRouterDetails.forEach(router => {
+          const routerId = `router-tcp-${serverDetail.configuration.name}-${router.name}`;
+          
+          // Check if any of the entry points are mapped to the main instance
+          const mappedEntryPoints = router.entryPoints.filter(ep => 
+            Object.values(serverDetail.configuration.entryPoints).includes(ep)
+          );
+          
+          if (mappedEntryPoints.length > 0) {
+            edges.push({
+              id: `edge-main-to-${routerId}`,
+              source: mainNodeId,
+              target: routerId,
+              animated: true,
+              labelBgStyle: { fill: '#FFFFFF', opacity: 0.7 },
+              style: { stroke: '#DD6B20' },
+            });
+          }
+        });
+      }
     });
     
     return { nodes, edges };
@@ -312,8 +318,9 @@ const NetworkView = () => {
   
   // Update flow nodes and edges when graphData changes
   useEffect(() => {
-    setNodes(graphData.nodes);
-    setEdges(graphData.edges);
+    const data = graphData();
+    setNodes(data.nodes);
+    setEdges(data.edges);
   }, [graphData, setNodes, setEdges]);
 
   // Refresh data every 30 seconds
@@ -410,7 +417,7 @@ const NetworkView = () => {
           fitView
         >
           <Controls />
-          <Background variant="dots" gap={12} size={1} />
+          <Background color="#f8f8f8" gap={12} size={1} />
           <Panel position="top-left">
             <Box bg="white" p={3} borderRadius="md" shadow="md">
               <Heading size="sm" mb={2}>Legend</Heading>

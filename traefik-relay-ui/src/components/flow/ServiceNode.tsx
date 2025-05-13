@@ -2,7 +2,14 @@ import { useCallback, memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import { Box, Text, Badge, useColorModeValue } from '@chakra-ui/react';
 
-const ServiceNode = ({ data }) => {
+interface ServiceNodeProps {
+  data: {
+    service: string;
+    server: string;
+  };
+}
+
+const ServiceNode = ({ data }: ServiceNodeProps) => {
   const getBg = useCallback(() => {
     return useColorModeValue('teal.50', 'teal.900');
   }, []);
