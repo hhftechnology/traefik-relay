@@ -14,7 +14,7 @@ import {
   DrawerOverlay,
   Heading,
 } from '@chakra-ui/react';
-import { useLink as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import {
   FiHome,
   FiSettings,

@@ -8,7 +8,6 @@ import ReactFlow, {
   useEdgesState,
   MarkerType,
   Panel,
-  BackgroundVariant,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import {
