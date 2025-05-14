@@ -888,6 +888,7 @@ const Configuration = () => {
   const [saveStatus, setSaveStatus] = useState(null);
   
 // In the Configuration component
+// In the Configuration component of App.js
 useEffect(() => {
     const fetchConfig = async () => {
       setLoading(true);
@@ -895,9 +896,33 @@ useEffect(() => {
         console.log("Fetching config...");
         const response = await fetch(`${apiService.baseUrl}/api/v1/config`);
         console.log("Response status:", response.status);
-        const data = await response.json();
-        console.log("Config received:", data);
-        setConfig(data || {});
+        
+        if (!response.ok) {
+          throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+        }
+        
+        const text = await response.text();
+        console.log("Raw response:", text);
+        
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.error("JSON parse error:", parseError);
+          throw new Error(`Failed to parse response as JSON: ${text.substring(0, 100)}...`);
+        }
+        
+        console.log("Config parsed:", data);
+        
+        // Ensure the data is in the expected format
+        if (!data || typeof data !== 'object') {
+          throw new Error("Received invalid configuration format");
+        }
+        
+        // Initialize empty arrays if they don't exist
+        if (!data.servers) data.servers = [];
+        
+        setConfig(data);
       } catch (error) {
         console.error("Error fetching configuration:", error);
         setError(error.message);

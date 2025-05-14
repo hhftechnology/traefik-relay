@@ -452,7 +452,14 @@ func (s *Server) handleRefreshServer(w http.ResponseWriter, r *http.Request) {
 
 // handleGetConfig handles the GET /api/v1/config endpoint
 func (s *Server) handleGetConfig(w http.ResponseWriter, r *http.Request) {
-    log.Printf("Returning config: %+v", s.config)
+	w.Header().Set("Content-Type", "application/json")
+	log.Printf("Returning config: %+v", s.config)
+	    // Serialize the config to JSON
+		if err := json.NewEncoder(w).Encode(s.config); err != nil {
+			log.Printf("Error encoding config to JSON: %v", err)
+			http.Error(w, fmt.Sprintf("Error encoding config: %v", err), http.StatusInternalServerError)
+			return
+		}
     writeJSON(w, s.config, http.StatusOK)
 }
 
