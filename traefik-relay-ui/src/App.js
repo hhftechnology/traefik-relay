@@ -890,46 +890,51 @@ const Configuration = () => {
 // In the Configuration component
 // In the Configuration component of App.js
 useEffect(() => {
-    const fetchConfig = async () => {
-      setLoading(true);
-      try {
-        console.log("Fetching config...");
-        const response = await fetch(`${apiService.baseUrl}/api/v1/config`);
-        console.log("Response status:", response.status);
-        
-        if (!response.ok) {
-          throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-        }
-        
-        const text = await response.text();
-        console.log("Raw response:", text);
-        
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (parseError) {
-          console.error("JSON parse error:", parseError);
-          throw new Error(`Failed to parse response as JSON: ${text.substring(0, 100)}...`);
-        }
-        
-        console.log("Config parsed:", data);
-        
-        // Ensure the data is in the expected format
-        if (!data || typeof data !== 'object') {
-          throw new Error("Received invalid configuration format");
-        }
-        
-        // Initialize empty arrays if they don't exist
-        if (!data.servers) data.servers = [];
-        
-        setConfig(data);
-      } catch (error) {
-        console.error("Error fetching configuration:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
+// In the Configuration component fetchConfig function
+const fetchConfig = async () => {
+    setLoading(true);
+    try {
+      console.log("Fetching config...");
+      const response = await fetch(`${apiService.baseUrl}/api/v1/config`);
+      console.log("Response status:", response.status);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch config: ${response.status} ${response.statusText}`);
       }
-    };
+      
+      // First get response as text to inspect it
+      const text = await response.text();
+      console.log("Raw response:", text);
+      
+      // Then parse it as JSON
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error("JSON parse error:", err);
+        throw new Error("Invalid JSON in response");
+      }
+      
+      console.log("Parsed config:", data);
+      
+      // Check the structure - the backend uses uppercase property names
+      // but the UI expects lowercase
+      const processedConfig = {
+        servers: data.Servers || [],
+        runEvery: data.RunEvery,
+        forwardMiddlewares: data.ForwardMiddlewares,
+        forwardServices: data.ForwardServices
+      };
+      
+      console.log("Processed config:", processedConfig);
+      setConfig(processedConfig);
+    } catch (error) {
+      console.error("Error fetching configuration:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   
     fetchConfig();
   }, []);

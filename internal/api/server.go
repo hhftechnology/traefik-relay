@@ -451,16 +451,33 @@ func (s *Server) handleRefreshServer(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleGetConfig handles the GET /api/v1/config endpoint
+// handleGetConfig handles the GET /api/v1/config endpoint
 func (s *Server) handleGetConfig(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	log.Printf("Returning config: %+v", s.config)
-	    // Serialize the config to JSON
-		if err := json.NewEncoder(w).Encode(s.config); err != nil {
-			log.Printf("Error encoding config to JSON: %v", err)
-			http.Error(w, fmt.Sprintf("Error encoding config: %v", err), http.StatusInternalServerError)
-			return
-		}
-    writeJSON(w, s.config, http.StatusOK)
+    // Make sure content type is set for proper JSON handling
+    w.Header().Set("Content-Type", "application/json")
+    
+    // Log what we're sending for debugging
+    log.Printf("Returning config: %+v", s.config)
+    
+    // Create a response struct with consistent property naming
+    resp := struct {
+        Servers            []config.Server `json:"servers"`
+        RunEvery           int             `json:"runEvery"`
+        ForwardMiddlewares bool            `json:"forwardMiddlewares"`
+        ForwardServices    bool            `json:"forwardServices"`
+    }{
+        Servers:            s.config.Servers,
+        RunEvery:           s.config.RunEvery,
+        ForwardMiddlewares: s.config.ForwardMiddlewares,
+        ForwardServices:    s.config.ForwardServices,
+    }
+    
+    // Encode the response
+    if err := json.NewEncoder(w).Encode(resp); err != nil {
+        log.Printf("Error encoding JSON response: %v", err)
+        http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
+        return
+    }
 }
 
 // handleUpdateConfig handles the PUT /api/v1/config endpoint
